@@ -1,4 +1,5 @@
 <?php
+namespace curl;
 
 /**
  * A basic CURL wrapper
