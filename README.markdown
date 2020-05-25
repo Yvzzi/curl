@@ -1,11 +1,11 @@
 # curl
 
 A basic CURL wrapper for PHP (see [http://php.net/curl](http://php.net/curl) for more information about the libcurl extension for PHP)
-
+This is just a fork of `git://github.com/shuber/curl.git` but change to class format.
 
 ## Installation
 
-Click the `download` link above or `git clone git://github.com/shuber/curl.git`
+Click the `download` link above or `git clone https://github.com/Yvzzi/curl`
 
 
 ## Usage
@@ -14,8 +14,8 @@ Click the `download` link above or `git clone git://github.com/shuber/curl.git`
 
 Simply require and initialize the `Curl` class like so:
 
-	require_once 'curl.php';
-	$curl = new Curl;
+	require_once __DIR__ . 'curl/autoload@module.php';
+	$curl = new Curl();
 
 
 ### Performing a Request
@@ -137,4 +137,4 @@ Then run `test/runner.php`
 
 ## Contact
 
-Problems, comments, and suggestions all welcome: [shuber@huberry.com](mailto:shuber@huberry.com)
+Problems, comments, and suggestions all welcome: [2433988494@qq.com](mailto:2433988494@qq.com)
