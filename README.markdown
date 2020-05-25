@@ -15,6 +15,9 @@ Click the `download` link above or `git clone https://github.com/Yvzzi/curl`
 Simply require and initialize the `Curl` class like so:
 
 	require_once __DIR__ . '/curl/autoload@module.php';
+	
+	use curl\Curl;
+	
 	$curl = new Curl();
 
 
