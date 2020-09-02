@@ -16,14 +16,16 @@ class Curl {
      *
      * @var string
     **/
-    public $cookie_file;
+    public $cookieFile;
+
+    public $deleteCookieLast = true;
     
     /**
      * Determines whether or not requests should follow redirects
      *
      * @var boolean
     **/
-    public $follow_redirects = true;
+    public $followRedirects = true;
     
     /**
      * An associative array of headers to send along with requests
@@ -51,7 +53,7 @@ class Curl {
      *
      * @var string
     **/
-    public $user_agent;
+    public $userAgent;
     
     /**
      * Stores an error string for the last request if one occurred
@@ -68,18 +70,24 @@ class Curl {
      * @access protected
     **/
     protected $request;
-    
+
+    protected $type = "query";
+
     /**
      * Initializes a Curl object
      *
-     * Sets the $cookie_file to "curl_cookie.txt" in the current directory
-     * Also sets the $user_agent to $_SERVER['HTTP_USER_AGENT'] if it exists, 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)' otherwise
+     * Also sets the $userAgent to $_SERVER['HTTP_USER_AGENT'] if it exists, 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)' otherwise
     **/
     function __construct() {
-        $this->cookie_file = dirname(__FILE__).DIRECTORY_SEPARATOR.'curl_cookie.txt';
-        $this->user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)';
+        $this->userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)';
     }
-    
+
+    function __destruct() {
+        if ($this->deleteCookieLast) {
+            unlink($this->cookieFile);
+        }
+    }
+
     /**
      * Makes an HTTP DELETE request to the specified $url with an optional array or string of $vars
      *
@@ -155,7 +163,27 @@ class Curl {
     function put($url, $vars = array()) {
         return $this->request('PUT', $url, $vars);
     }
-    
+
+    function withRaw(): self {
+        $this->type = "raw";
+        return $this;
+    }
+
+    function withText(): self {
+        $this->type = "text";
+        return $this;
+    }
+
+    function withQuery(): self {
+        $this->type = "query";
+        return $this;
+    }
+
+    function withJson(): self {
+        $this->type = "json";
+        return $this;
+    }
+
     /**
      * Makes an HTTP request of the specified $method to a $url with an optional array or string of $vars
      *
@@ -169,7 +197,19 @@ class Curl {
     function request($method, $url, $vars = array()) {
         $this->error = '';
         $this->request = curl_init();
-        if (is_array($vars)) $vars = http_build_query($vars, '', '&');
+
+        switch ($this->type) {
+            case "query":
+                if (is_array($vars)) $vars = http_build_query($vars, '', '&');
+            break;
+            case "text":
+                $this->headers["Content-Type"] = "text/plain";
+            break;
+            case "json":
+                $this->headers["Content-Type"] = "application/json";
+                $vars = json_encode($vars);
+            break;
+        }
         
         $this->set_request_method($method);
         $this->set_request_options($url, $vars);
@@ -184,8 +224,13 @@ class Curl {
         }
         
         curl_close($this->request);
-        
+
         return $response;
+    }
+    
+    function ignoreSSL(): void {
+        $this->options["SSL_VERIFYPEER"] = 0;
+        $this->options["SSL_VERIFYHOST"] = 0;
     }
     
     /**
@@ -199,6 +244,7 @@ class Curl {
         foreach ($this->headers as $key => $value) {
             $headers[] = $key.': '.$value;
         }
+        $this->headers = [];
         curl_setopt($this->request, CURLOPT_HTTPHEADER, $headers);
     }
     
@@ -240,12 +286,12 @@ class Curl {
         # Set some default CURL options
         curl_setopt($this->request, CURLOPT_HEADER, true);
         curl_setopt($this->request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->request, CURLOPT_USERAGENT, $this->user_agent);
-        if ($this->cookie_file) {
-            curl_setopt($this->request, CURLOPT_COOKIEFILE, $this->cookie_file);
-            curl_setopt($this->request, CURLOPT_COOKIEJAR, $this->cookie_file);
+        curl_setopt($this->request, CURLOPT_USERAGENT, $this->userAgent);
+        if ($this->cookieFile) {
+            curl_setopt($this->request, CURLOPT_COOKIEFILE, $this->cookieFile);
+            curl_setopt($this->request, CURLOPT_COOKIEJAR, $this->cookieFile);
         }
-        if ($this->follow_redirects) curl_setopt($this->request, CURLOPT_FOLLOWLOCATION, true);
+        if ($this->followRedirects) curl_setopt($this->request, CURLOPT_FOLLOWLOCATION, true);
         if ($this->referer) curl_setopt($this->request, CURLOPT_REFERER, $this->referer);
         
         # Set any custom CURL options
@@ -253,5 +299,4 @@ class Curl {
             curl_setopt($this->request, constant('CURLOPT_'.str_replace('CURLOPT_', '', strtoupper($option))), $value);
         }
     }
-
 }
