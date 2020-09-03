@@ -79,11 +79,12 @@ class Curl {
      * Also sets the $userAgent to $_SERVER['HTTP_USER_AGENT'] if it exists, 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)' otherwise
     **/
     function __construct() {
-        $this->userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Curl/PHP '.PHP_VERSION.' (http://github.com/shuber/curl)';
+        $this->cookieFile = "cookie_file.txt";
+        $this->userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36";
     }
 
     function __destruct() {
-        if ($this->deleteCookieLast) {
+        if ($this->deleteCookieLast && file_exists($this->cookieFile)) {
             unlink($this->cookieFile);
         }
     }
