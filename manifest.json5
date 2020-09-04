@@ -1,0 +1,16 @@
+{
+    // Please rename this file to manifest.json5 after editing
+    // File list here will be ignore and it will not be packed into phar
+    ignore: [
+
+    ],
+    /**
+     * There are 2 kinds of modes: default, none
+     * If use mode 'default'. When you require it, it will load 'autoload@module.php' ('main.cli') when you use the phar.
+     * When you access it by web browser, it will load 'src/index.php' ('main.web') when you use the phar.
+     * If use mode 'none', you should write 'main.web', 'main.cli' by yourselft
+     */
+    main.mode: "default",
+    main.web: "src/index.php",
+    main.cli: "autoload@module.php"
+}
